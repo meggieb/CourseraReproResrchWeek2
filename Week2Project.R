@@ -82,9 +82,26 @@ row.names(datamedNoNas)<-NULL
 datamergeNoNas<-merge(datamNoNas,datamedNoNas,by="Date")
 
 #Create a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.
-dataNoNasWeekdays<-dataNoNas
+dataNoNasdays<-dataNoNas
 head(dataNoNas)
-dataNoNasWeekdays$Weekday<-weekdays(as.Date(dataNoNasWeekdays$date,"%Y-%m-%d"))
+dataNoNasdays$Weekday<-weekdays(as.Date(dataNoNasdays$date,"%Y-%m-%d"))
+
+#Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute 
+#interval (x-axis) and the average number of steps taken, averaged across all weekday days 
+#or weekend days (y-axis). The plot should look something like the following, which was 
+#creating using simulated data:
+
+dataNoNasWeekend<-dataNoNasdays[(dataNoNasdays$Weekday=="Saturday"|dataNoNasdays$Weekday=="Sunday"),]
+dataMInterval<-as.data.frame(tapply(data$steps,data$interval,mean,na.rm=TRUE))
+dim(dataMInterval)
+dataMInterval<-cbind(row.names(dataMInterval),dataMInterval)
+names(dataMInterval)<-c("Interval","Steps")
+dataMInterval
+row.names(dataMInterval)<-NULL
+dataMInterval$Interval<-as.numeric(as.character(dataMInterval$Interval))
+dataMInterval$Interval
+dataMInterval$Steps
+plot(dataMInterval$Interval,dataMInterval$Steps, type="l")
 
 
 #mean number of steps taken per day
