@@ -92,24 +92,23 @@ dataNoNasdays$Weekday<-weekdays(as.Date(dataNoNasdays$date,"%Y-%m-%d"))
 #creating using simulated data:
 
 dataNoNasWeekend<-dataNoNasdays[(dataNoNasdays$Weekday=="Saturday"|dataNoNasdays$Weekday=="Sunday"),]
-dataMInterval<-as.data.frame(tapply(data$steps,data$interval,mean,na.rm=TRUE))
-dim(dataMInterval)
-dataMInterval<-cbind(row.names(dataMInterval),dataMInterval)
-names(dataMInterval)<-c("Interval","Steps")
-dataMInterval
-row.names(dataMInterval)<-NULL
-dataMInterval$Interval<-as.numeric(as.character(dataMInterval$Interval))
-dataMInterval$Interval
-dataMInterval$Steps
-plot(dataMInterval$Interval,dataMInterval$Steps, type="l")
+head(dataNoNasWeekend)
+dataNoNasWeekend<-as.data.frame(tapply(dataNoNasdays$steps,dataNoNasdays$interval,mean,na.rm=TRUE))
+head
+dataNoNasWeekend<-cbind(row.names(dataNoNasWeekend),dataNoNasWeekend)
+names(dataNoNasWeekend)<-c("Interval","Steps")
+row.names(dataNoNasWeekend)<-NULL
+dataNoNasWeekend$Interval<-as.numeric(as.character(dataNoNasWeekend$Interval))
+plot(dataNoNasWeekend$Interval,dataNoNasWeekend$Steps, type="l")
 
 
-#mean number of steps taken per day
-hist(data$steps)
 
-par(mfrow=c(1,1))
-barplot(data$date, data$steps, type="l")
 
-head(data)
-library(reshape2)
-mdata<-melt(data,id=date)
+dataNoNasWeekdays<-dataNoNasdays[(dataNoNasdays$Weekday!="Saturday"&dataNoNasdays$Weekday!="Sunday"),]
+dataNoNasWeekdays<-as.data.frame(tapply(dataNoNasdays$steps,dataNoNasdays$interval,mean,na.rm=TRUE))
+head
+dataNoNasWeekdays<-cbind(row.names(dataNoNasWeekdays),dataNoNasWeekdays)
+names(dataNoNasWeekdays)<-c("Interval","Steps")
+row.names(dataNoNasWeekdays)<-NULL
+dataNoNasWeekdays$Interval<-as.numeric(as.character(dataNoNasWeekdays$Interval))
+plot(dataNoNasWeekdays$Interval,dataNoNasWeekdays$Steps, type="l")
