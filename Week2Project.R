@@ -1,8 +1,9 @@
 data<-read.csv("activity.csv", header=T)
-summary(data$interval)
+summary(data$steps)
 
-#Make a histogram of the total number of steps taken each day
-datam<-as.matrix(tapply(data$steps,data$date,mean))
+#Make a histogram of the total number of steps taken each day - CHECK! 
+datam<-as.matrix(tapply(data$steps,data$date,mean,na.rm=TRUE))
+#head(datam)
 barplot(t(datam))
 
 #Calculate and report the mean and median total number of steps taken per day
@@ -14,45 +15,39 @@ row.names(datam)<-NULL
 
 datamed<-as.data.frame(tapply(data$steps,data$date,median,na.rm=TRUE))
 datamed<-cbind(row.names(datamed),datamed)
-dim(datamed)
-head(datamed)
 names(datamed)<-c("Date","Median")
 row.names(datamed)<-NULL
-datamerge<-merge(datam,datamed,by="Date")
+merge(datam,datamed,by="Date")
 
 #Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
 dataMInterval<-as.data.frame(tapply(data$steps,data$interval,mean,na.rm=TRUE))
-dim(dataMInterval)
 dataMInterval<-cbind(row.names(dataMInterval),dataMInterval)
 names(dataMInterval)<-c("Interval","Steps")
 dataMInterval
 row.names(dataMInterval)<-NULL
 dataMInterval$Interval<-as.numeric(as.character(dataMInterval$Interval))
-dataMInterval$Interval
-dataMInterval$Steps
-plot(dataMInterval$Interval,dataMInterval$Steps, type="l")
+plot(dataMInterval$Interval,dataMInterval$Steps, type="l", xlab="5-Min Intervals", ylab="Average Steps per 5-Min Interval")
 
 
 #Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
 dataMIntervalSort <- dataMInterval[order(-dataMInterval$Steps),]
 maxValue<-which.max(dataMInterval$Steps)
 maxInterval<-dataMInterval[maxValue,1]
+maxInterval
 #835
 
 #Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
-summary(data)
+NaValues<-complete.cases(data)
+NaValuesRows<-grep("FALSE", NaValues)
+length(NaValuesRows)
 
 #Devise a strategy for filling in all of the missing values in the dataset. 
 #The strategy does not need to be sophisticated. For example, you could use the 
 #mean/median for that day, or the mean for that 5-minute interval, etc.
-summary(dataNoNas)  #2304
-
-#Fill in the 5-minute interval 
-#Find all the rows with NA in the dataset, then find all their interval values
-NaValues<-complete.cases(data)
-
+I will use the mean for the 5 minute interval
 
 #Create a new dataset that is equal to the original dataset but with the missing data filled in.
+NaValues<-complete.cases(data)
 NaValuesRows<-grep("FALSE", NaValues)
 dataNoNas<-data
 for(i in 1:2304)
@@ -61,13 +56,13 @@ for(i in 1:2304)
   dataNoNas[p,1]<- dataMInterval$Steps[match(dataNoNas[p,3],dataMInterval$Interval)]
   ++i
 }
-
+write.csv(dataNoNas, file="dataNoNas.csv")
 
 #Make a histogram of the total number of steps taken each day and 
-#Do these values differ from the estimates from the first part of the assignment? 
-#What is the impact of imputing missing data on the estimates of the total daily number of steps?
+
 datamNoNas<-as.matrix(tapply(dataNoNas$steps,dataNoNas$date,mean))
 barplot(t(datamNoNas))
+par(mfrow=c(1,2))
 
 #Calculate and report the mean and median total number of steps taken per day. 
 datamNoNas<-as.data.frame(tapply(dataNoNas$steps,dataNoNas$date,mean,na.rm=TRUE))
@@ -81,16 +76,41 @@ names(datamedNoNas)<-c("Date","Median")
 row.names(datamedNoNas)<-NULL
 datamergeNoNas<-merge(datamNoNas,datamedNoNas,by="Date")
 
+#Do these values differ from the estimates from the first part of the assignment? 
+The only values that differ are the days in which there were NA values for the whole day. In the first graph, there were no values for the 
+graphs, and now the appear on the chart. 
+
+#What is the impact of imputing missing data on the estimates of the total daily number of steps?
+The days with all NA values look the same - they take on an average day value.
+
+
+
 #Create a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.
 dataNoNasdays<-dataNoNas
 head(dataNoNas)
 dataNoNasdays$Weekday<-weekdays(as.Date(dataNoNasdays$date,"%Y-%m-%d"))
+head(dataNoNasdays)
+weekdays<-c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")
+weekdays<-as.data.frame(cbind(weekdays,"weekday"))
+names(weekdays)<-c("Day", "TypeOfDay")
+weekdays
+weekends<-c("Saturday", "Sunday")
+weekends<-as.data.frame(cbind(weekends,"weekend"))
+names(weekends)<-c("Day", "TypeOfDay")
+weekends
+typeOfDays<-rbind(weekdays,weekends)
+typeOfDays
+match(dataNoNasdays$Weekday,typeOfDays$Day)
+dataNoNasdays[,5]<-typeOfDays$typeOfDay[match(dataNoNasdays$Weekday,typeOfDays$Day)]
+moviesandGenres$Animation<-animationFilms1$animation[match(moviesandGenres$Title,animationFilms1$Title)]
+
 
 #Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute 
 #interval (x-axis) and the average number of steps taken, averaged across all weekday days 
 #or weekend days (y-axis). The plot should look something like the following, which was 
 #creating using simulated data:
 
+par(mfcol=c(2,1))
 dataNoNasWeekend<-dataNoNasdays[(dataNoNasdays$Weekday=="Saturday"|dataNoNasdays$Weekday=="Sunday"),]
 head(dataNoNasWeekend)
 dataNoNasWeekend<-as.data.frame(tapply(dataNoNasdays$steps,dataNoNasdays$interval,mean,na.rm=TRUE))
@@ -99,7 +119,8 @@ dataNoNasWeekend<-cbind(row.names(dataNoNasWeekend),dataNoNasWeekend)
 names(dataNoNasWeekend)<-c("Interval","Steps")
 row.names(dataNoNasWeekend)<-NULL
 dataNoNasWeekend$Interval<-as.numeric(as.character(dataNoNasWeekend$Interval))
-plot(dataNoNasWeekend$Interval,dataNoNasWeekend$Steps, type="l")
+write.csv(dataNoNasWeekend, file="dataNoNasWeekend.csv")
+plot(dataNoNasWeekend$Interval,dataNoNasWeekend$Steps, type="l", xlab="5-Min Intervals", ylab="Avg Steps per 5-min Intervals", main="Weekend")
 
 
 
@@ -111,4 +132,4 @@ dataNoNasWeekdays<-cbind(row.names(dataNoNasWeekdays),dataNoNasWeekdays)
 names(dataNoNasWeekdays)<-c("Interval","Steps")
 row.names(dataNoNasWeekdays)<-NULL
 dataNoNasWeekdays$Interval<-as.numeric(as.character(dataNoNasWeekdays$Interval))
-plot(dataNoNasWeekdays$Interval,dataNoNasWeekdays$Steps, type="l")
+plot(dataNoNasWeekdays$Interval,dataNoNasWeekdays$Steps, type="l", xlab="5-Min Intervals", ylab="Avg Steps per 5-min Intervals", main="Weekday")
